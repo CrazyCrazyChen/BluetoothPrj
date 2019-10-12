@@ -18,8 +18,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,24 +30,24 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.ServerSocket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity {
+import static android.provider.ContactsContract.Intents.Insert.NAME;
+import static android.provider.Settings.Global.DEVICE_NAME;
+
+public class MainActivity extends AppCompatActivity implements IItemButton {
 
 
     public static String TAG = "MainActivity";
-    BluetoothAdapter mBluetoothAdapter=null;
-
-    public static final int REQUEST_ENABLE_BT = 1;
     BluetoothDeviceAdapter bluetoothDeviceAdapter;
 
-
-
-    protected UUID MY_UUID = UUID
-            .fromString("00001101-0000-1000-8000-00805F9B34FB");
 
 
 
@@ -61,17 +63,36 @@ public class MainActivity extends AppCompatActivity {
         title_tv = findViewById(R.id.tvtest);
 
 
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            Toast.makeText(this, "当前设备不支持蓝牙！", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "支持蓝牙！", Toast.LENGTH_SHORT).show();
-        }
+        BluetoothDeviceAdapter.bluetoothReceiver = new BluetoothReciever();
 
+        bluetoothDeviceAdapter = new BluetoothDeviceAdapter(this,new Handler());
+
+
+
+
+//
+//        BluetoothReciever bluetoothReciever= new BluetoothReciever();
+//
+//        IntentFilter intentFilter = new IntentFilter();
+//        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED); //开始扫描
+//        intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);//扫描结束
+//        intentFilter.addAction(BluetoothDevice.ACTION_FOUND);//搜索到设备
+//        registerReceiver(bluetoothReciever,intentFilter);
+//        Log.d(TAG, "onCreate: sh设备绑定-----------------成功");
+
+
+        //声音播放
         RecordThread rec = new RecordThread();
         rec.start();
 
 
+
+
+
+
+
+
+//蓝牙开关处理
         Switch ctrlBluetoothSwitch = findViewById(R.id.ctrlBluetoothSwitch);
 
         ctrlBluetoothSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -80,18 +101,7 @@ public class MainActivity extends AppCompatActivity {
                 if (isChecked) {
                     //Todo
 
-                    if (!mBluetoothAdapter.isEnabled()) {
-                        mBluetoothAdapter.enable();
-                    }
-
-
-                } else {
-                    //Todo
-
-                    if (mBluetoothAdapter.isEnabled()) {
-                        mBluetoothAdapter.disable();
-                    }
-
+                     Log.d(TAG, "onCheckedChanged: guanbisaomiaolanya hanshu");
 
                 }
             }
@@ -100,99 +110,26 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(mReceiver, filter);
-        filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        registerReceiver(mReceiver, filter);
-
-
-
-
-        search= findViewById(R.id.searchBluetooth);
+        search = findViewById(R.id.searchBluetooth);
         search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
+//
 
-                mBluetoothAdapter.startDiscovery();
-             //   mBluetoothAdapter.registerAndDiscover();
-
-                bluetoothDeviceAdapter = new BluetoothDeviceAdapter(MainActivity.this,handler);
-                bluetoothDeviceAdapter.openBluetoothAdapter();
-
-
-
-              //  Thread thread1 = new Thread(bluetoothDeviceAdapter);
-             //   thread1.start();
-
+                new Thread(bluetoothDeviceAdapter).start();
 
 
             }
         });
+
     }
 
 
+    @Override
+    public void btnOnClick(int pos, String packageName) {
 
-
-
-
-    BroadcastReceiver mReceiver = new BroadcastReceiver() {
-
-        BluetoothDevice device;
-
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            //找到设备
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                 device = intent
-                        .getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
-                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-
-                    Log.v(TAG, "find device:" + device.getName()
-                            + device.getAddress());
-                }
-            }
-            //搜索完成
-            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED
-                    .equals(action)) {
-                setTitle("搜索完成");
-//                if (bluetoothDeviceAdapter.getCount() == 0) {
-//                    Log.v("ok", "find over");
-//                }
-
-
-                BluetoothSocket clienSocket= null;
-                try {
-                    clienSocket = device. createRfcommSocketToServiceRecord(MY_UUID);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    clienSocket.connect();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    };
-
-
-    Handler handler = new Handler(){
-
-        public void handleMessage(Message msg) {
-            Toast.makeText(MainActivity.this, "收到啦", Toast.LENGTH_LONG).show();
-        }
-
-    };
-
-
-
-
-
-
+    }
 }
+
 
