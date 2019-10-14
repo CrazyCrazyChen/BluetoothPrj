@@ -2,9 +2,11 @@ package com.example.bluetoothprj;
 
 
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -16,6 +18,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -39,9 +42,26 @@ public class BluetoothDeviceAdapter implements Runnable {
     protected InputStream inputStream;
     protected OutputStream outputStream;
 
+    BluetoothA2dp mA2dp;
     BluetoothSocket tmp = null;
 
+    private BluetoothProfile.ServiceListener mListener = new BluetoothProfile.ServiceListener() {
+        @Override
+        public void onServiceDisconnected(int profile) {
+            if(profile == BluetoothProfile.A2DP){
+                mA2dp = null;
+            }
+        }
+        @Override
+        public void onServiceConnected(int profile, BluetoothProfile proxy) {
+            if(profile == BluetoothProfile.A2DP){
+                mA2dp = (BluetoothA2dp) proxy; //转换
 
+
+                mA2dp.isA2dpPlaying(bluetoothDevice);
+            }
+        }
+    };
     /**
      * 构造方法:获取本地蓝牙实例，打开蓝牙，搜索设备信息，查询已配对的设备
      *
@@ -52,7 +72,19 @@ public class BluetoothDeviceAdapter implements Runnable {
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         this.context = context;
+
+
+
         bluetoothDevice = device;
+
+
+
+        bluetoothAdapter.getProfileProxy(this.context, mListener, BluetoothProfile.A2DP);
+
+
+
+
+
 
 
         //1、获取BluetoothSocket
@@ -67,6 +99,31 @@ public class BluetoothDeviceAdapter implements Runnable {
 
     }
 
+
+
+
+
+    private void connectA2dp(BluetoothDevice device){
+        setPriority(device, 100); //设置priority
+        try {
+            //通过反射获取BluetoothA2dp中connect方法（hide的），进行连接。
+            Method connectMethod =BluetoothA2dp.class.getMethod("connect",
+                    BluetoothDevice.class);
+            connectMethod.invoke(mA2dp, device);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void setPriority(BluetoothDevice device, int priority) {
+        if (mA2dp == null) return;
+        try {//通过反射获取BluetoothA2dp中setPriority方法（hide的），设置优先级
+            Method connectMethod =BluetoothA2dp.class.getMethod("setPriority",
+                    BluetoothDevice.class,int.class);
+            connectMethod.invoke(mA2dp, device, priority);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 
 
@@ -88,7 +145,9 @@ public class BluetoothDeviceAdapter implements Runnable {
 
 //        try {
         bluetoothAdapter.cancelDiscovery();
-        connect();
+
+        connectA2dp(bluetoothDevice);
+      //  connect();
 //            readData();
 //        } catch (IOException e) {
 //            measureResult.put("errorInfo", e.getMessage());

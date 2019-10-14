@@ -180,6 +180,8 @@ public class MainActivity extends AppCompatActivity implements IItemButton ,Adap
 
 
 
+
+
         bluetoothDeviceAdapter = new BluetoothDeviceAdapter(getApplicationContext(), list.get(position));
         new Thread(bluetoothDeviceAdapter).start();
 
