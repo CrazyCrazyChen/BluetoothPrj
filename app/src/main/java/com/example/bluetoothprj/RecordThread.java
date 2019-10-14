@@ -1,5 +1,6 @@
 package com.example.bluetoothprj;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -12,6 +13,9 @@ class RecordThread extends Thread{
         static final int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
 
 
+        static Context context;
+
+
         public void run() {
             // TODO Auto-generated method stub  
 
@@ -22,6 +26,11 @@ class RecordThread extends Thread{
                  byte[] recBuf = new byte[recBufSize];
                  audioRecord.startRecording();
                  audioTrack.play();
+
+
+
+
+
         while(true){
                   int readLen = audioRecord.read(recBuf, 0, recBufSize);
                   audioTrack.write(recBuf, 0, readLen);
@@ -29,4 +38,6 @@ class RecordThread extends Thread{
         // audioTrack.stop();
         // audioRecord.stop();
         }
+
+
 }

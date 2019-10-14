@@ -1,6 +1,9 @@
 package com.example.bluetoothprj;
 
+import android.bluetooth.BluetoothClass;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,15 +14,15 @@ import android.widget.TextView;
 import java.util.List;
 
 public class BluetoothListAdapter extends BaseAdapter {
-    public List<BluetoothBean> getList() {
+    public List<BluetoothDevice> getList() {
         return list;
     }
 
-    public void setList(List<BluetoothBean> list) {
+    public void setList(List<BluetoothDevice> list) {
         this.list = list;
     }
 
-    List<BluetoothBean> list;
+    List<BluetoothDevice> list;
     LayoutInflater inflater;
 
     public Context getContext() {
@@ -72,23 +75,28 @@ public class BluetoothListAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        BluetoothBean app = list.get(position);
-        holder.name.setText("NAME："+app.name);
-        holder.mac.setText("MAC:"+app.mac);
-        holder.statu.setText("状态:"+app.statu);
+        BluetoothDevice app = list.get(position);
+        holder.name.setText("NAME："+app.getName());
+        holder.mac.setText("MAC:"+app.getAddress());
+        holder.statu.setText("状态:"+app.getBondState());
 
 
 
 
 
-        final  int pos = position;
+       final int pos = position;
        // final  String packageName = app.packageName;
+
+
 
         holder.btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("adb", "onClick:__________________条目按钮监听 ");
+                //itemButton .btnOnClick(pos,"ttst");
 
-               // itemButton .btnOnClick(pos,"ttst");
+
+
 
 
             }
@@ -102,10 +110,6 @@ public class BluetoothListAdapter extends BaseAdapter {
 
 
 
-    IItemButton itemButton;
-    public void setUninstall(IItemButton itemButton) {
-        this.itemButton = itemButton;
-    }
 
 
     public class ViewHolder{
